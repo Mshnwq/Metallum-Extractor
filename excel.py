@@ -3,7 +3,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 import time, sys, importlib
 
-class XSL_Worker(QThread):
+class Excel_Worker(QThread):
     '''Excel Worker Thread'''
     def __init__(self):
         super().__init__()
@@ -13,7 +13,7 @@ class XSL_Worker(QThread):
 
 def main():
     app = QApplication(sys.argv)
-    xsl_worker = XSL_Worker()
+    excel_worker = Excel_Worker()
     ...
 
 if __name__ == '__main__':

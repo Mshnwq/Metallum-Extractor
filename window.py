@@ -93,7 +93,6 @@ class Ui_MainWindow(QMainWindow):
         # Create context menu and actions
         menu = QMenu(self.table)
 
-
         # Create a QAction with a checkbox widget for the Full Length filter
         full_length_action = QAction("Full Length", menu)
         full_length_action.setCheckable(True)
@@ -173,7 +172,7 @@ class Ui_MainWindow(QMainWindow):
     def filter_table(self, to_filter):
         # boss
         for row_index in range(self.table.rowCount()):
-            type_text = self.table.item(row_index, 1).text().lower()
+            type_text = self.table.item(row_index, 1).text().lower().replace('-','_')
             if self.compare_first_letters(to_filter, type_text):
                 eval(f"self.table.setRowHidden(row_index, not self.{to_filter}_bool)")
 
