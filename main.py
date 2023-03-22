@@ -178,7 +178,13 @@ class MainWindow(QMainWindow):
         ...
 
     def handle_youtube_event(self):
-        youtube_worker = Youtube_Worker()
+        # get the selected albums to save and filter them
+        _selected = self.filter_albums(self.ui.get_table_selected())
+        # create worker and connect slots
+        youtube_worker = Youtube_Worker(_selected)
+        youtube_worker.done_signal.connect(
+                            partial(self.on_excel_finish, youtube_worker))
+        youtube_worker.start()
         ...
 
     def on_youtube_finish(self, worker):

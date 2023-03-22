@@ -6,99 +6,72 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from browser import Browser_Worker
+from selenium.webdriver.common.keys import Keys
+import time
+from selenium.webdriver import Firefox, FirefoxProfile, FirefoxOptions
+from selenium.webdriver import Chrome, ChromeOptions
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import time
 
 
 class Youtube_Worker(QThread, Browser_Worker):
     '''Browser Youtube Worker Thread'''
-    def __init__(self):
+    done_signal = pyqtSignal()
+    
+    def __init__(self, selected):
         super().__init__()
-        
+        self.selected = selected
 
     def run(self):
-        # Get the website URL from the user
-        base_url = 'https://www.metal-archives.com'
-        # path = input('Enter band name: ')
-        path = 'Peste_Noire/12841'
 
-        url = f'{base_url}/bands/{path}'
-        print(url)
+        # Create a new Firefox profile and set it to incognito mode
+        # profile = FirefoxProfile()
+        # profile.set_preference("browser.privatebrowsing.autostart", True)
 
-        # Create a new instance of the Firefox driver
-        driver = webdriver.Firefox()
+        # # Set Firefox options to use the new profile
+        # options = FirefoxOptions()
+        # options.profile = profile
 
-        # Navigate to the website
-        driver.get(url)
+        # # Create a new Firefox browser instance with the specified options
+        # driver = Firefox(options=options)
 
-        # Get the page source and parse it with Beautiful Soup
-        page_source = driver.page_source
-        # print(page_source)
-        soup = BeautifulSoup(page_source, 'html.parser')
+        # Set Chrome options to use incognito mode
+        options = ChromeOptions()
+        options.add_argument("--incognito")
 
-        # # Find the data you need in the HTML content
-        # Find the discography category list
-        discography_list = soup.find('div', {'id': 'band_disco'}).find('ul')
+        # Create a new Chrome browser instance with the specified options
+        driver = Chrome(options=options)
 
+        # Navigate to YouTube and search for the query
+        # ''' This is buffer for the following, apparently the first query in firefox fails alot'''
+        # driver.get("https://www.youtube.com/")
+        # search_box = driver.find_element(By.NAME, "search_query")
+        # search_box.send_keys(self.selected['band_name'])
+        # search_box.send_keys(Keys.ENTER)
+        # # Open the first video in a new tab
+        # driver.execute_script("window.open('');")
+        # driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
 
-        # Extract the category names and URLs
-        # categories = []
-        # print(discography_list)
-        complete_discography_url = ''
-        for item in discography_list.find_all('li'):
-            if (item.find('span').text == "Complete discography"):
-                complete_discography_url = item.find('a')['href']
-                break
-                # categories.append({'category': category, 'url': url})
-        if complete_discography_url == '':
-            exit("error")
+        # Loop over the albums in the band_dict
+        for album in self.selected["band_albums"]:
+            # Construct the search query
+            search_query = f"{self.selected['band_name']} {album['name']} {album['year']}"
 
-        # Navigate to the complete discography 
-        driver.get(complete_discography_url)
+            # Navigate to YouTube and search for the query
+            driver.get("https://www.youtube.com/")
+            search_box = driver.find_element(By.NAME, "search_query")
+            search_box.send_keys(search_query)
+            search_box.send_keys(Keys.ENTER)
 
-        page_source = driver.page_source
-        # print(page_source)
-        soup = BeautifulSoup(page_source, 'html.parser')
+            # Wait for the search results to load
+            time.sleep(1)
 
-        # Find the table body
-        table_body = soup.find('tbody')
+            # Open the first video in a new tab
+            driver.execute_script("window.open('');")
+            driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
 
-        # Find all rows in the table
-        rows = table_body.find_all('tr')
-
-        # Find the data you need in the HTML content
-        # Loop through the rows and extract the information
-        # print(rows)
-        all_albums_dict = {}
-        all_albums_dict['albums'] = []
-        for row in rows:
-            album = {}
-            # extract columns
-            cols = row.find_all("td")
-            # Get the name of the music release
-            name = cols[0].find("a").text
-            album['name'] = name
-            # Get the type of the music release
-            _type = cols[1].text
-            album['type'] = _type
-            # Get the year of the music release
-            year = cols[2].text
-            album['year'] = year
-
-            href = cols[0].find("a")['href']
-            album['href'] = href
-
-            # Print the extracted information
-            # print(f"\nName: {name},\t Type: {_type}, Year: {year}")
-            # print(href)
-            all_albums_dict['albums'].append(album)
-
-        # Close the web browser
-        driver.quit()
-
-        # Print the list of categories and URLs
-        self.albums_json = json.dumps(all_albums_dict, indent=3)
-
-        print(self.albums_json)
-
+        self.done_signal.emit()
 
 
 def main():
