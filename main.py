@@ -8,6 +8,7 @@ from youtube import Youtube_Worker
 from folder import Folder_Worker
 from functools import partial
 import json
+import openpyxl
 import urllib.request
 import time, sys, importlib, os, platform, ctypes
 
@@ -155,7 +156,20 @@ class MainWindow(QMainWindow):
         ...
 
     def handle_excel_event(self):
-        excel_worker = Excel_Worker()
+        # get the selected albums to save and filter them
+        _selected = self.filter_albums(self.ui.get_table_selected())
+        # Use QFileDialog to prompt the user for a excel file
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getOpenFileName(self, 
+                                "QFileDialog.getOpenFileName()", "",
+                                "Text Files (*.xlsx);;All Files (*)", options=options)
+        if file_name == '':
+            return
+        # create worker and connect slots
+        excel_worker = Excel_Worker(file_name, _selected)
+        excel_worker.done_signal.connect(
+                            partial(self.on_excel_finish, excel_worker))
+        excel_worker.start()
         ...
 
     def on_excel_finish(self, worker):
