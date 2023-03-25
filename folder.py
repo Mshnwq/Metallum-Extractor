@@ -1,4 +1,5 @@
 import os
+import re
 import urllib.request
 
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -15,7 +16,7 @@ class Folder_Worker(QThread):
 
     def run(self):
         # Create the band directory
-        band_name = self.selected["band_name"]
+        band_name = self.sanitize_filename(self.selected["band_name"])
         band_dir = os.path.join(self.directory, band_name)
         os.makedirs(band_dir, exist_ok=True)
 
@@ -38,7 +39,7 @@ class Folder_Worker(QThread):
                 album_dir = os.path.join(band_dir, f'{album_name} ({album_year})')
             else:
                 album_dir = os.path.join(band_dir, f'{album_name} [{album_type}] ({album_year})')
-            os.makedirs(album_dir, exist_ok=True)
+            os.makedirs(self.sanitize_filename(album_dir), exist_ok=True)
 
             try:
                 # Download the album cover with a user agent header
@@ -53,6 +54,12 @@ class Folder_Worker(QThread):
         
         self.done_signal.emit()
         ...
+
+    def sanitize_filename(self, name):
+        # Remove any characters that can't be used in Windows folder names
+        # sanitized_name = re.sub(r'[<>:"|?*]', '', name)
+        sanitized_name = name
+        return sanitized_name
 
 def main():
     ...
