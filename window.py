@@ -16,6 +16,9 @@ class Ui_MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # select options
+        self.check_all_bool = False
+        # filter options
         self.full_length_bool = True
         self.single_bool = True
         self.collab_bool = True
@@ -63,9 +66,14 @@ class Ui_MainWindow(QMainWindow):
         self.table.setHorizontalHeaderLabels(['Name', 'Type', 'Year', 'Selected'])
         self.table.setSortingEnabled(True)
         self.table.setContextMenuPolicy(Qt.CustomContextMenu) # type: ignore
-        self.table.customContextMenuRequested.connect(self.customContextMenuRequested)
+        self.table.customContextMenuRequested.connect(self.table_context_menu)
         header = self.table.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.Stretch)
+        header.setSectionsClickable(True)
+        header.setSectionsMovable(True)
+        header.setContextMenuPolicy(Qt.CustomContextMenu) # type: ignore
+        header.customContextMenuRequested.connect(self.table_header_context_menu)
+        # Connect cellClicked signal to check_checkbox slot
+        self.table.cellClicked.connect(self.check_checkbox)
 
         self.layout.addWidget(self.table)
 
@@ -98,103 +106,134 @@ class Ui_MainWindow(QMainWindow):
         MainWindow.setCentralWidget(self.centralwidget) 
         QMetaObject.connectSlotsByName(MainWindow)
 
-    def customContextMenuRequested(self, point: QPoint):
+    def check_all_checkboxes(self):
+        for row in range(self.table.rowCount()):
+            if not self.table.isRowHidden(row):
+                checkbox = self.table.\
+                    cellWidget(row, 3).layout().itemAt(0).widget()
+                checkbox.setChecked(not self.check_all_bool)
+        self.check_all_bool = not self.check_all_bool # toggle
+
+    def check_checkbox(self, row):
+        checkbox = self.table.\
+            cellWidget(row, 3).layout().itemAt(0).widget()
+        checkbox.setChecked(True)
+
+    def table_header_context_menu(self, pos):
+        # Create context menu and actions
+        menu = QMenu(self.table.horizontalHeader())
+        column = self.table.horizontalHeader().logicalIndexAt(pos)
+        if column == 3:
+            check_all_action = QAction("Check All", menu)
+            check_all_action.setCheckable(True)
+            check_all_action.setChecked(self.check_all_bool)
+            check_all_action.toggled.connect(
+                lambda: self.check_all_checkboxes())
+            check_all_action.setStatusTip("Check All Albums")
+            check_all_action.setToolTip("Check All Albums")
+            # Add checkboxes to menu
+            menu.addAction(check_all_action)
+        menu.exec_(self.table.horizontalHeader().viewport().mapToGlobal(pos))
+
+    def table_context_menu(self, pos):
         # Create context menu and actions
         menu = QMenu(self.table)
+        item = self.table.itemAt(pos)
 
-        # Create a QAction with a checkbox widget for the Full Length filter
-        full_length_action = QAction("Full Length", menu)
-        full_length_action.setCheckable(True)
-        full_length_action.setChecked(self.full_length_bool)
-        full_length_action.toggled.connect(lambda: self.toggle_filter('full_length'))
-        full_length_action.setStatusTip("Filter by Full Length")
-        full_length_action.setToolTip("Filter by Full Length")
+        if item is not None:
+            # Create a QAction with a checkbox widget for the Full Length filter
+            full_length_action = QAction("Full Length", menu)
+            full_length_action.setCheckable(True)
+            full_length_action.setChecked(self.full_length_bool)
+            full_length_action.toggled.connect(lambda: self.toggle_filter('full_length'))
+            full_length_action.setStatusTip("Filter by Full Length")
+            full_length_action.setToolTip("Filter by Full Length")
 
-        # Create a QAction with a checkbox widget for the EP filter
-        ep_action = QAction("EP", menu)
-        ep_action.setCheckable(True)
-        ep_action.setChecked(self.ep_bool)
-        ep_action.toggled.connect(lambda: self.toggle_filter('ep'))
-        ep_action.setStatusTip("Filter by EP")
-        ep_action.setToolTip("Filter by EP")
+            # Create a QAction with a checkbox widget for the EP filter
+            ep_action = QAction("EP", menu)
+            ep_action.setCheckable(True)
+            ep_action.setChecked(self.ep_bool)
+            ep_action.toggled.connect(lambda: self.toggle_filter('ep'))
+            ep_action.setStatusTip("Filter by EP")
+            ep_action.setToolTip("Filter by EP")
 
-        # Create a QAction with a checkbox widget for the Demo filter
-        demo_action = QAction("Demo", menu)
-        demo_action.setCheckable(True)
-        demo_action.setChecked(self.demo_bool)
-        demo_action.toggled.connect(lambda: self.toggle_filter('demo'))
-        demo_action.setStatusTip("Filter by Demo")
-        demo_action.setToolTip("Filter by Demo")
+            # Create a QAction with a checkbox widget for the Demo filter
+            demo_action = QAction("Demo", menu)
+            demo_action.setCheckable(True)
+            demo_action.setChecked(self.demo_bool)
+            demo_action.toggled.connect(lambda: self.toggle_filter('demo'))
+            demo_action.setStatusTip("Filter by Demo")
+            demo_action.setToolTip("Filter by Demo")
 
-        # Create a QAction with a checkbox widget for the Split filter
-        split_action = QAction("Split", menu)
-        split_action.setCheckable(True)
-        split_action.setChecked(self.split_bool)
-        split_action.toggled.connect(lambda: self.toggle_filter('split'))
-        split_action.setStatusTip("Filter by Split")
-        split_action.setToolTip("Filter by Split")
-        
-        # Create a QAction with a checkbox widget for the Collab filter
-        collab_action = QAction("Collab", menu)
-        collab_action.setCheckable(True)
-        collab_action.setChecked(self.collab_bool)
-        collab_action.toggled.connect(lambda: self.toggle_filter('collab'))
-        collab_action.setStatusTip("Filter by Collab")
-        collab_action.setToolTip("Filter by Collab")
-        
-        # Create a QAction with a checkbox widget for the Live filter
-        live_action = QAction("Live", menu)
-        live_action.setCheckable(True)
-        live_action.setChecked(self.live_bool)
-        live_action.toggled.connect(lambda: self.toggle_filter('live'))
-        live_action.setStatusTip("Filter by Live")
-        live_action.setToolTip("Filter by Live")
-        
-        # Create a QAction with a checkbox widget for the Single filter
-        single_action = QAction("Single", menu)
-        single_action.setCheckable(True)
-        single_action.setChecked(self.single_bool)
-        single_action.toggled.connect(lambda: self.toggle_filter('single'))
-        single_action.setStatusTip("Filter by Single")
-        single_action.setToolTip("Filter by Single")
-        
-        # Create a QAction with a checkbox widget for the Comp filter
-        comp_action = QAction("Comp", menu)
-        comp_action.setCheckable(True)
-        comp_action.setChecked(self.comp_bool)
-        comp_action.toggled.connect(lambda: self.toggle_filter('comp'))
-        comp_action.setStatusTip("Filter by Comp")
-        comp_action.setToolTip("Filter by Comp")
+            # Create a QAction with a checkbox widget for the Split filter
+            split_action = QAction("Split", menu)
+            split_action.setCheckable(True)
+            split_action.setChecked(self.split_bool)
+            split_action.toggled.connect(lambda: self.toggle_filter('split'))
+            split_action.setStatusTip("Filter by Split")
+            split_action.setToolTip("Filter by Split")
+            
+            # Create a QAction with a checkbox widget for the Collab filter
+            collab_action = QAction("Collab", menu)
+            collab_action.setCheckable(True)
+            collab_action.setChecked(self.collab_bool)
+            collab_action.toggled.connect(lambda: self.toggle_filter('collab'))
+            collab_action.setStatusTip("Filter by Collab")
+            collab_action.setToolTip("Filter by Collab")
+            
+            # Create a QAction with a checkbox widget for the Live filter
+            live_action = QAction("Live", menu)
+            live_action.setCheckable(True)
+            live_action.setChecked(self.live_bool)
+            live_action.toggled.connect(lambda: self.toggle_filter('live'))
+            live_action.setStatusTip("Filter by Live")
+            live_action.setToolTip("Filter by Live")
+            
+            # Create a QAction with a checkbox widget for the Single filter
+            single_action = QAction("Single", menu)
+            single_action.setCheckable(True)
+            single_action.setChecked(self.single_bool)
+            single_action.toggled.connect(lambda: self.toggle_filter('single'))
+            single_action.setStatusTip("Filter by Single")
+            single_action.setToolTip("Filter by Single")
+            
+            # Create a QAction with a checkbox widget for the Comp filter
+            comp_action = QAction("Comp", menu)
+            comp_action.setCheckable(True)
+            comp_action.setChecked(self.comp_bool)
+            comp_action.toggled.connect(lambda: self.toggle_filter('comp'))
+            comp_action.setStatusTip("Filter by Comp")
+            comp_action.setToolTip("Filter by Comp")
 
-        # Create a QAction with a checkbox widget for the Video filter
-        video_action = QAction("Video", menu)
-        video_action.setCheckable(True)
-        video_action.setChecked(self.vid_bool)
-        video_action.toggled.connect(lambda: self.toggle_filter('vid'))
-        video_action.setStatusTip("Filter by Video")
-        video_action.setToolTip("Filter by Video")
+            # Create a QAction with a checkbox widget for the Video filter
+            video_action = QAction("Video", menu)
+            video_action.setCheckable(True)
+            video_action.setChecked(self.vid_bool)
+            video_action.toggled.connect(lambda: self.toggle_filter('vid'))
+            video_action.setStatusTip("Filter by Video")
+            video_action.setToolTip("Filter by Video")
 
-        # Create a QAction with a checkbox widget for the Boxed filter
-        boxed_action = QAction("Boxed", menu)
-        boxed_action.setCheckable(True)
-        boxed_action.setChecked(self.box_bool)
-        boxed_action.toggled.connect(lambda: self.toggle_filter('box'))
-        boxed_action.setStatusTip("Filter by Boxed")
-        boxed_action.setToolTip("Filter by Boxed")
+            # Create a QAction with a checkbox widget for the Boxed filter
+            boxed_action = QAction("Boxed", menu)
+            boxed_action.setCheckable(True)
+            boxed_action.setChecked(self.box_bool)
+            boxed_action.toggled.connect(lambda: self.toggle_filter('box'))
+            boxed_action.setStatusTip("Filter by Boxed")
+            boxed_action.setToolTip("Filter by Boxed")
 
-        # Add checkboxes to menu
-        menu.addAction(full_length_action)
-        menu.addAction(demo_action)
-        menu.addAction(ep_action)
-        menu.addAction(split_action)
-        menu.addAction(collab_action)
-        menu.addAction(single_action)
-        menu.addAction(comp_action)
-        menu.addAction(live_action)
-        menu.addAction(video_action)
-        menu.addAction(boxed_action)
+            # Add checkboxes to menu
+            menu.addAction(full_length_action)
+            menu.addAction(demo_action)
+            menu.addAction(ep_action)
+            menu.addAction(split_action)
+            menu.addAction(collab_action)
+            menu.addAction(single_action)
+            menu.addAction(comp_action)
+            menu.addAction(live_action)
+            menu.addAction(video_action)
+            menu.addAction(boxed_action)
 
-        menu.exec_(self.table.viewport().mapToGlobal(point))
+        menu.exec_(self.table.viewport().mapToGlobal(pos))
 
     def filter_table(self, to_filter):
         # boss
@@ -228,7 +267,7 @@ class Ui_MainWindow(QMainWindow):
                 selected.append([self.table.item(row_index, column_index).text() for column_index in range(3)])
         return selected
 
-    def update_table(self, data: list[str]):
+    def update_table(self, data: list[list[str]]):
 
         # Clear table
         self.table.setRowCount(0)

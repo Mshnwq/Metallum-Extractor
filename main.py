@@ -1,4 +1,5 @@
 import ctypes
+import json
 import platform
 import sys
 from functools import partial
@@ -70,7 +71,7 @@ class MainWindow(QMainWindow):
     def on_extract_finish(self, worker, band_dict) -> None:
         worker.terminate()
         albums = self.store_info(band_dict)
-        # print(albums)
+        print(albums)
         self.ui.update_table(albums)
         # enable action buttons
         self.ui.folder_button.setDisabled(False) 
@@ -81,7 +82,7 @@ class MainWindow(QMainWindow):
 
     def store_info(self, band_dict: dict) -> list:
         self.band_dict = band_dict
-        # print(json.dumps(band_dict, indent=4))
+        print(json.dumps(band_dict, indent=4))
         self.band_name = band_dict['band_name']
         self.band_pic_link = band_dict['band_pic_link']
         self.all_albums_list = []
