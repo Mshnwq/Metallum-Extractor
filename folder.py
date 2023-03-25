@@ -1,8 +1,8 @@
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-import time, sys, importlib, os, logging
+import os
 import urllib.request
+
+from PyQt5.QtCore import QThread, pyqtSignal
+
 
 class Folder_Worker(QThread):
     '''Folder Worker Thread'''
@@ -25,8 +25,9 @@ class Folder_Worker(QThread):
             req = urllib.request.Request(band_pic_link, headers={'User-Agent': 'Mozilla/5.0'})
             with urllib.request.urlopen(req) as response, open(os.path.join(band_dir, f"{band_name} logo.jpg"), "wb") as outfile:
                 outfile.write(response.read())
+        
         except Exception as e:
-            logging.error(e)
+            print(e)
 
         # Create a directory for each album
         for album in self.selected["band_albums"]:
@@ -42,18 +43,18 @@ class Folder_Worker(QThread):
             try:
                 # Download the album cover with a user agent header
                 album_pic_link = album["album_pic_link"]
-                req = urllib.request.Request(album_pic_link, headers={'User-Agent': 'Mozilla/5.0'})
-                with urllib.request.urlopen(req) as response, open(os.path.join(album_dir, f"{album_name} cover.jpg"), "wb") as outfile:
-                    outfile.write(response.read())
+                if album_pic_link != '':
+                    req = urllib.request.Request(album_pic_link, headers={'User-Agent': 'Mozilla/5.0'})
+                    with urllib.request.urlopen(req) as response, open(os.path.join(album_dir, f"{album_name} cover.jpg"), "wb") as outfile:
+                        outfile.write(response.read())
+            
             except Exception as e:
-                logging.error(e)
+                print(e)
         
         self.done_signal.emit()
         ...
 
 def main():
-    app = QApplication(sys.argv)
-    folder_worker = Folder_Worker()
     ...
 
 if __name__ == '__main__':

@@ -1,21 +1,15 @@
-import sys
-from selenium import webdriver
-from bs4 import BeautifulSoup
-import json
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from browser import Browser_Worker
-from selenium.webdriver.common.keys import Keys
 import time
-from selenium.webdriver import Firefox, FirefoxProfile, FirefoxOptions
-from selenium.webdriver import Chrome, ChromeOptions
+
+from bs4 import BeautifulSoup
+from PyQt5.QtCore import QThread, pyqtSignal
+from selenium import webdriver
+from selenium.webdriver import (Chrome, ChromeOptions, Firefox, FirefoxOptions,
+                                FirefoxProfile)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-import time
 
 
-class Youtube_Worker(QThread, Browser_Worker):
+class Youtube_Worker(QThread):
     '''Browser Youtube Worker Thread'''
     done_signal = pyqtSignal()
     
@@ -75,9 +69,6 @@ class Youtube_Worker(QThread, Browser_Worker):
 
 
 def main():
-    app = QApplication(sys.argv)
-    youtube_worker = Youtube_Worker()
-    json = youtube_worker.getJSON()
     ...
 
 if __name__ == '__main__':

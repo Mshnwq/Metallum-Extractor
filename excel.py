@@ -1,8 +1,6 @@
-import logging
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-import time, sys, importlib, openpyxl
+import openpyxl
+from PyQt5.QtCore import QThread, pyqtSignal
+
 
 class Excel_Worker(QThread):
     '''Excel Worker Thread'''
@@ -27,18 +25,17 @@ class Excel_Worker(QThread):
                     row.append(album["name"])
             
             # Append the new band row to the worksheet
-            worksheet.append(row)
+            worksheet.append(row) # type: ignore
             # Save workbook
             workbook.save(self.file_name)
+            
         except Exception as e:
-                logging.error(e)
+                print(e)
 
         self.done_signal.emit()
         ...
 
 def main():
-    app = QApplication(sys.argv)
-    excel_worker = Excel_Worker()
     ...
 
 if __name__ == '__main__':

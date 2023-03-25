@@ -1,7 +1,9 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-import time, sys, importlib
+from PyQt5.QtCore import QMetaObject, QPoint, Qt, pyqtSignal
+from PyQt5.QtWidgets import (QAction, QApplication, QCheckBox, QGroupBox,
+                             QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+                             QMainWindow, QMenu, QPushButton, QStatusBar,
+                             QTableWidget, QTableWidgetItem, QVBoxLayout,
+                             QWidget)
 
 
 class Ui_MainWindow(QMainWindow):
@@ -21,6 +23,8 @@ class Ui_MainWindow(QMainWindow):
         self.comp_bool = True
         self.live_bool = True
         self.demo_bool = True
+        self.vid_bool = True
+        self.box_bool = True
         self.ep_bool = True
 
     def setup_ui(self, MainWindow):
@@ -30,7 +34,7 @@ class Ui_MainWindow(QMainWindow):
         self.centralwidget = QWidget(MainWindow)
         
         # Initialize layout
-        self.layout = QVBoxLayout(self.centralwidget)
+        self.layout = QVBoxLayout(self.centralwidget) # type: ignore
 
         # Add search bar and button
         self.search_group = QGroupBox(self.centralwidget) 
@@ -41,9 +45,14 @@ class Ui_MainWindow(QMainWindow):
         self.extract_button.clicked.connect(
                                 lambda: self._emit(
                                 'extract_event_signal'))
+        # Add checkbox to last column
+        self.album_img_checkbox = QCheckBox("with album images")
+        self.album_img_checkbox.setToolTip(\
+            "Check if desire to extract album images also")
         search_layout = QHBoxLayout(self.search_group)
         search_layout.addWidget(self.search_label)
         search_layout.addWidget(self.search_input)
+        search_layout.addWidget(self.album_img_checkbox)
         search_layout.addWidget(self.extract_button)
 
         self.layout.addWidget(self.search_group)
@@ -53,7 +62,7 @@ class Ui_MainWindow(QMainWindow):
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels(['Name', 'Type', 'Year', 'Selected'])
         self.table.setSortingEnabled(True)
-        self.table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.table.setContextMenuPolicy(Qt.CustomContextMenu) # type: ignore
         self.table.customContextMenuRequested.connect(self.customContextMenuRequested)
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.Stretch)
@@ -133,7 +142,7 @@ class Ui_MainWindow(QMainWindow):
         collab_action.setStatusTip("Filter by Collab")
         collab_action.setToolTip("Filter by Collab")
         
-        # Create a QAction with a checkbox widget for the Collab filter
+        # Create a QAction with a checkbox widget for the Live filter
         live_action = QAction("Live", menu)
         live_action.setCheckable(True)
         live_action.setChecked(self.live_bool)
@@ -141,7 +150,7 @@ class Ui_MainWindow(QMainWindow):
         live_action.setStatusTip("Filter by Live")
         live_action.setToolTip("Filter by Live")
         
-        # Create a QAction with a checkbox widget for the Collab filter
+        # Create a QAction with a checkbox widget for the Single filter
         single_action = QAction("Single", menu)
         single_action.setCheckable(True)
         single_action.setChecked(self.single_bool)
@@ -149,13 +158,29 @@ class Ui_MainWindow(QMainWindow):
         single_action.setStatusTip("Filter by Single")
         single_action.setToolTip("Filter by Single")
         
-        # Create a QAction with a checkbox widget for the Collab filter
+        # Create a QAction with a checkbox widget for the Comp filter
         comp_action = QAction("Comp", menu)
         comp_action.setCheckable(True)
         comp_action.setChecked(self.comp_bool)
         comp_action.toggled.connect(lambda: self.toggle_filter('comp'))
         comp_action.setStatusTip("Filter by Comp")
         comp_action.setToolTip("Filter by Comp")
+
+        # Create a QAction with a checkbox widget for the Video filter
+        video_action = QAction("Video", menu)
+        video_action.setCheckable(True)
+        video_action.setChecked(self.vid_bool)
+        video_action.toggled.connect(lambda: self.toggle_filter('vid'))
+        video_action.setStatusTip("Filter by Video")
+        video_action.setToolTip("Filter by Video")
+
+        # Create a QAction with a checkbox widget for the Boxed filter
+        boxed_action = QAction("Boxed", menu)
+        boxed_action.setCheckable(True)
+        boxed_action.setChecked(self.box_bool)
+        boxed_action.toggled.connect(lambda: self.toggle_filter('box'))
+        boxed_action.setStatusTip("Filter by Boxed")
+        boxed_action.setToolTip("Filter by Boxed")
 
         # Add checkboxes to menu
         menu.addAction(full_length_action)
@@ -166,6 +191,8 @@ class Ui_MainWindow(QMainWindow):
         menu.addAction(single_action)
         menu.addAction(comp_action)
         menu.addAction(live_action)
+        menu.addAction(video_action)
+        menu.addAction(boxed_action)
 
         menu.exec_(self.table.viewport().mapToGlobal(point))
 
@@ -217,10 +244,9 @@ class Ui_MainWindow(QMainWindow):
                 # Add checkbox to last column
                 checkbox_container = QWidget()
                 checkbox_layout = QHBoxLayout()
-                checkbox_layout.setAlignment(Qt.AlignCenter)
+                checkbox_layout.setAlignment(Qt.AlignCenter) # type: ignore
                 checkbox_layout.setContentsMargins(0,0,0,0)
                 checkbox_widget = QCheckBox()
-                # checkbox_widget.setGeometry(0,0,10,5)
                 checkbox_layout.addWidget(checkbox_widget)
                 checkbox_container.setLayout(checkbox_layout)
                 self.table.setCellWidget(row_index, 3, checkbox_container)
@@ -228,9 +254,10 @@ class Ui_MainWindow(QMainWindow):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
+    app = QApplication([])
     main = QMainWindow()
     main.ui = Ui_MainWindow()
     main.ui.setup_ui(main)
     main.show()
     app.exec_()
+    ...
