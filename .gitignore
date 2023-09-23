@@ -1,14 +1,6 @@
-<<<<<<< HEAD
 # Byte-compiled / optimized / DLL files
-__pycache__/
-.venv/
-.git/
-.vscode/
-=======
 __pycache__/
 **__pycache__/
 .venv/
 .vscode/
-
 *.log
->>>>>>> 3104f43e01dcb623a1e7ac8d3a939a2e4bff55bc
