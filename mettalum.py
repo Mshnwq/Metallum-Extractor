@@ -77,9 +77,12 @@ class Metallum_Worker(QThread):
                 # Get the page source and parse it with Beautiful Soup
                 page_source = driver.page_source
                 soup = BeautifulSoup(page_source, 'html.parser')
-                # Store the album cover link
-                album['album_pic_link'] = soup.find('div', \
-                                    {'class': 'album_img'}).find('a')['href'] # type: ignore
+                try:
+                    # Store the album cover link
+                    album['album_pic_link'] = soup.find('div', \
+                                        {'class': 'album_img'}).find('a')['href'] # type: ignore
+                except:
+                    album['album_pic_link'] = ''
             else: # no album image
                 album['album_pic_link'] = ''
 
