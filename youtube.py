@@ -1,6 +1,5 @@
 import time
 
-from bs4 import BeautifulSoup
 from PyQt5.QtCore import QThread, pyqtSignal
 from selenium import webdriver
 from selenium.webdriver import (Chrome, ChromeOptions, Firefox, FirefoxOptions,
@@ -19,6 +18,7 @@ class Youtube_Worker(QThread):
 
     def run(self):
 
+        driver = webdriver.Chrome()
         # Create a new Firefox profile and set it to incognito mode
         # profile = FirefoxProfile()
         # profile.set_preference("browser.privatebrowsing.autostart", True)
@@ -30,22 +30,15 @@ class Youtube_Worker(QThread):
         # # Create a new Firefox browser instance with the specified options
         # driver = Firefox(options=options)
 
-        # Set Chrome options to use incognito mode
-        options = ChromeOptions()
-        options.add_argument("--incognito")
-
-        # Create a new Chrome browser instance with the specified options
-        driver = Chrome(options=options)
-
-        # Navigate to YouTube and search for the query
-        # ''' This is buffer for the following, apparently the first query in firefox fails alot'''
-        # driver.get("https://www.youtube.com/")
-        # search_box = driver.find_element(By.NAME, "search_query")
-        # search_box.send_keys(self.selected['band_name'])
-        # search_box.send_keys(Keys.ENTER)
-        # # Open the first video in a new tab
-        # driver.execute_script("window.open('');")
-        # driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
+        # # Navigate to YouTube and search for the query
+        ''' This is buffer for the following, apparently the first query in fails alot'''
+        driver.get("https://www.youtube.com/")
+        search_box = driver.find_element(By.NAME, "search_query")
+        search_box.send_keys(self.selected['band_name'])
+        search_box.send_keys(Keys.ENTER)
+        # Open the first video in a new tab
+        driver.execute_script("window.open('');")
+        driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
 
         # Loop over the albums in the band_dict
         for album in self.selected["band_albums"]:
@@ -73,6 +66,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
